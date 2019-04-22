@@ -1,0 +1,202 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+#include<string.h>
+
+#define ROW 9
+#define COL 9
+#define ROWS (ROW+2)
+#define COLS (COL+2)
+#define lei 10
+
+
+void Initboard(char mine[ROWS][COLS], int row, int col, char set)
+{
+    memset(mine, set, row*col*sizeof(mine[0][0]));  //初始化棋盘
+
+}
+
+void display(char mine[ROWS][COLS], int row, int col)
+{
+    int i = 1, j = 1;
+    printf("   ");
+    for (i = 1; i <= row - 2; i++)
+    {
+        printf("%d ", i);
+    }
+    printf("\n");
+
+    for (i = 1; i <= row - 2; i++)
+    {
+        printf("%d  ", i);
+
+        for (j = 1; j <= col - 2; j++)
+        {
+            printf("%c ", mine[i][j]);
+        }
+        printf("\n");
+    }         //打印棋盘，并给行列标明序号
+
+}
+
+void set_boom(char mine[ROWS][COLS]) //设置棋盘中的雷
+{
+    int count = lei;
+
+    while (count > 0)
+    {
+        int x = rand() % 9 + 1;  //随机设置雷，并保证雷数在10个之内
+        int y = rand() % 9 + 1;
+
+        if (mine[x][y] == '0')
+        {
+            mine[x][y] = '1';
+            count--;
+        }
+    }
+
+}
+int  get_boom(char mine[ROWS][COLS], int x, int y)
+{
+    return mine[x - 1][y - 1] + mine[x - 1][y] +
+        mine[x - 1][y + 1] + mine[x][y - 1] +
+        mine[x][y + 1] + mine[x + 1][y - 1] +
+        mine[x + 1][y] + mine[x + 1][y + 1] - 8 * '0';
+
+} //判断周边是否有雷
+
+
+
+void fun(char mine[ROWS][COLS], char show[ROWS][COLS], int x, int y)   //往四周扩展
+{
+
+    if ((x >= 0) && (x <= 11) && (y >= 0) && (y <= 11))  //递归的限制条件
+    {
+        if (get_boom(mine, x, y) == 0)
+        {
+            show[x][y] = ' ';
+            if (show[x - 1][y - 1] == '*')
+            {
+                fun(mine, show, x - 1, y - 1);
+            }
+            if (show[x - 1][y] == '*')
+            {
+                fun(mine, show, x - 1, y);
+            }
+            if (show[x - 1][y + 1] == '*')
+            {
+                fun(mine, show, x - 1, y + 1);
+            }
+            if (show[x][y - 1] == '*')
+            {
+                fun(mine, show, x, y - 1);
+            }
+			if (show[x][y + 1] == '*')
+            {
+                fun(mine, show, x, y + 1);
+            }
+            if (show[x + 1][y - 1] == '*')
+            {
+                fun(mine, show, x + 1, y - 1);
+            }
+            if (show[x + 1][y] == '*')
+            {
+                fun(mine, show, x + 1, y);
+            }
+            if (show[x + 1][y + 1] == '*')
+            {
+                fun(mine, show, x + 1, y + 1);
+            }
+
+        }
+        else
+            show[x][y] = get_boom(mine, x, y) + '0';
+
+    }
+}
+
+
+void game()
+{
+    char mine[ROWS][COLS] = { 0 };
+    char show[ROWS][COLS] = { 0 };
+    int win = 0;
+    int x = 0;
+    int y = 0;
+
+    Initboard(mine, ROWS, COLS, '0');
+    Initboard(show, ROWS, COLS,'*');
+    set_boom(mine);
+    display(show, ROWS, COLS);
+    while (win != lei)
+    {
+        printf("请输入坐标：");
+        scanf("%d %d", &x, &y);
+        if (((x >= 1) && (x <= ROW)) && ((y >= 1) && (y <= COL)))  //判断输入的坐标是否在范围内
+        {
+            if (mine[x][y] == '1')
+            {
+                printf("GAME OVER!\n");
+                break;
+            }
+            else
+            {
+                fun(mine, show, x, y);
+                for (int i = 1; i <= 9; i++)
+                {
+                    for (int j = 1; j <= 9; j++)
+                    {
+                        if (show[i][j] == '*')
+                        {
+                            win++;
+                        }
+
+                    }
+                }
+
+                display(show, ROWS, COLS);
+
+            }
+        }
+        else
+        {
+            printf("输入坐标有误\n");
+        }
+    }
+    if (win == lei) //当雷尽数排空后判断游戏结束
+    {
+        printf("恭喜扫雷成功");
+    }
+    printf("雷阵如下：\n");
+    display(mine, ROWS, COLS);
+}
+void menu()
+{
+	int n;
+	printf("*************************\n");
+	printf("*******  1.paly  ********\n");
+	printf("*******  2.exit  ********\n");
+	printf("*************************\n");
+}
+void test()
+{
+	int input;
+	srand((unsigned)time(NULL));
+	do
+	{
+		menu();
+		printf("请选择:>");
+		scanf("%d",&input);
+		switch(input)
+		{
+			case 1: game() ; break;
+			case 2: printf("退出游戏");
+			default : printf("选择错误，请重新选择"); break; 
+		}
+	}while(input);
+}
+int main()
+{
+	test();
+	return 0;
+}
